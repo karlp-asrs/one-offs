@@ -1,0 +1,79 @@
+---
+title: "PEs and P/B"
+output: 
+  html_document:
+    keep_md: TRUE
+---
+```{r,echo=FALSE,message=FALSE,warning=FALSE}
+require(lubridate)
+```
+
+`r today()`
+
+Following are some charts for each of the SAA categories for our equity assets.  I present PE Ratio, Price to Book ratio and Divident Yield.  On each chart I plot long term averages for these statistics -- red is 10 year moving average, green is 15 year moving average and purple is 20 year moving average.
+
+
+
+
+```{r,echo=FALSE,message=FALSE,warning=FALSE}
+require("Rbbg")
+require("zoo")
+require("reshape2")
+conn=blpConnect(verbose=FALSE)
+tickers=c("SPX Index","MID Index","SML Index","MXEA Index","MXEASC Index","MXEF Index")
+names(tickers)=c("S&P 500","Mid Cap","Small Cap","EAFE","EAFE Small","Emg Mkts")
+flds=c("PE_RATIO","PX_TO_BOOK_RATIO","EQY_DVD_YLD_12M")
+names(flds)=c("PE Ratio","Price to Book","Dividend Yield")
+for (j in 1:length(tickers)) {
+  ticker=tickers[j]
+  tname=names(tickers)[j]
+  dat=bdh(conn,ticker,flds,Sys.Date()-(366*30),
+          option_names="periodicitySelection",option_values="MONTHLY")
+  maxval=c(35,5,40)
+  for(i in (1:length(flds))) {
+    s=zoo(dat[,1+i],as.Date(dat[,1])) 
+    ylim=c(min(s,na.rm=TRUE),min(max(s,na.rm=TRUE),maxval[i]))
+    plot(s,col="blue",main=tname,xlab='',ylab=names(flds)[i],ylim=ylim)
+    lines(rollapply(s,240,mean,align='right'),col='purple')
+    lines(rollapply(s,180,mean,align='right'),col='dark green')
+    lines(rollapply(s,120,mean,align='right'),col='red')
+  }
+  
+  dat=cbind(dat,ticker)
+  if(j==1) {
+    dathold=dat
+  } else {
+    dathold=rbind(dathold,dat)
+  }
+}
+```
+
+
+Next I present a series of charts showing the relative value of measurements compared to SPX Index.  The horizontal dotted line is the mean for the statistic.
+
+
+```{r, echo=FALSE}
+
+for(i in (1:length(flds))) {
+  ntoget=c('date',flds[i],'ticker')
+  tdat=dathold[,ntoget]
+  dtd=dcast(tdat,date~ticker,value.var=flds[i])
+  zdtd=read.zoo(dtd)
+  write.csv(dtd,paste0(flds[i],'.csv'))
+  for (j in 2:ncol(zdtd)) {
+    zdtd[,j]=zdtd[,j]-zdtd[,1]
+  }
+  zdtd=zdtd[,-1]
+  for (j in 1:ncol(zdtd)) {
+    ylim=mean(zdtd[,j],na.rm=TRUE)+(c(-2,2)*sd(zdtd[,j],na.rm=TRUE))
+    ylim=pmin(30,ylim)
+    ylim=pmax(-30,ylim)
+    plot(zdtd[,j],col='blue',ylim=ylim,
+         main=paste(names(flds)[i],colnames(zdtd)[j],'-',colnames(dtd)[2]),
+         xlab='',ylab=names(flds[i]))
+    abline(h=mean(zdtd[,j],na.rm=TRUE),lty='dotted')
+  }
+
+}
+x=blpDisconnect(conn)
+```
