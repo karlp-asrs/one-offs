@@ -1,0 +1,79 @@
+---
+title: "Momentum Index"
+output: 
+  html_document:
+    keep_md: TRUE
+---
+```{r,echo=FALSE,message=FALSE,warning=FALSE}
+require(lubridate)
+```
+
+`r today()`
+
+Some charts for historical value of "Momentum Index", defined as 6 month return divided by annual volatility measured on trailing 6 months data.  
+
+We plot the momentum index and add dotted lines for quartiles.  As you would expect, the quartiles are not symmetric around zero for assets with a positive expected return.
+
+We then plot the momentum index against the next three month return.  Quartiles are shown again as dotted lines (now vertical).  The green line is an OLS regression. A vertical red line is the current value of the momentum index with two red dots for a one-sigma confidence interval.   Finally, we show regression statistics. 
+
+
+```{r,echo=TRUE,message=FALSE,warning=FALSE}
+require("Rbbg")
+require("lubridate")
+require("zoo")
+conn=blpConnect(verbose=FALSE)
+tickers=c("SPX Index","MID Index","SML Index","MXEA Index",
+         "MSDLEAFE Index","MXEASC Index","NCLDEAFE Index","MXEF Index","NDLEEGF Index",
+         "BCOM Index","CL1 Comdty","XB1 Comdty","C 1 Comdty","HG1 Comdty","XAU Curncy",
+         "EURUSD Curncy","GBPUSD Curncy","JPYUSD Curncy")
+names(tickers)=c("S&P 500","Mid Cap","Small Cap","EAFE",
+                "EAFE Local","EAFE Small","EAFE Small Local","Emg Mkts","Emg Mkts Local",
+                "Commodities","WTI","Gasoline","Corn","Copper","Gold",
+                "Euro/USD","GBP/USD","Yen/USD")
+# tickers=c("AAPL US EQUITY","AMZN US EQUITy","MSFT US EQUITY")
+# names(tickers)=c("Apple","Amazon","Microsoft")
+flds=c("PX_LAST","VOLATILITY_180D")
+for (j in 1:length(tickers)) {
+  ticker=tickers[j]
+  tname=names(tickers)[j]
+  dat=bdh(conn,ticker,flds,Sys.Date()-(366*30),
+          option_names="periodicitySelection",option_values="MONTHLY")
+  dat2=bdh(conn,ticker,flds,Sys.Date()-183)
+  excl=which(apply(is.na(dat2),1,any))
+  if(length(excl)>0) dat2=dat2[-excl,]
+  pxz=zoo(dat$PX_LAST,as.Date(dat$date))
+  volz=zoo(dat$VOLATILITY_180D,as.Date(dat$date))
+  lastvol=dat2$VOLATILITY_180D[dim(dat2)[1]]
+  volz=c(volz,zoo(lastvol,today()+1))
+  rho=diff(log(pxz))
+  rhof3=rollapply(rho,FUN=sum,align='left',width=3)
+  rhof3=100*(-1+exp(rhof3))
+  rhot6=rollapply(rho,FUN=sum,align='right',width=6)
+  rhot6=100*(-1+exp(rhot6))
+  lastrho=as.numeric(100*(-1+dat2$PX_LAST[dim(dat2)[1]]/dat2$PX_LAST[1]))
+  rhot6=c(rhot6,zoo(lastrho,today()+1))
+  mom=rhot6/volz 
+  plot(mom,col='blue',xlab='',ylab='Momentum Index',main=names(tickers)[j])
+  abline(h=quantile(mom,na.rm=TRUE)[c(2,3,4)],lty='dotted')
+  rmat=merge(mom,rhof3)
+  exc=which(apply(is.na(merge(mom,rhof3)),1,any))
+  rmat=rmat[-exc,]
+  momentum_index=rmat[,1]
+  forward_3mo_return=rmat[,2]
+  plot(rmat[,1],rmat[,2],pch=20,col='blue',
+       main=names(tickers)[j],xlab='Momentum Index',ylab='Next 3 Month Return')
+  abline(v=quantile(mom,na.rm=TRUE)[c(2,3,4)],lty='dotted')
+  abline(h=0,lty='dotted')
+  lastmom=as.numeric(mom[length(mom)])
+  abline(v=lastmom,col='red')
+  model=lm(forward_3mo_return~momentum_index)
+  ci.calc=c(1,lastmom)%*%confint(model,level=.99)
+  new=data.frame(momentum_index=lastmom)
+  ci=predict(model,newdata = new,level=.65,interval='prediction')
+  ci=ci[1,c(2,3)]
+  abline(model,col='green')
+  points(c(lastmom,lastmom),ci,col='red',pch=19)
+  print(summary(model))
+}
+x=blpDisconnect(conn)
+```
