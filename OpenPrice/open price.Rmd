@@ -1,0 +1,26 @@
+---
+title: "Open Price Analysis"
+author: "Karl Polen"
+output: 
+  html_document:
+    keep_md: TRUE
+---
+
+```{r,message=FALSE,warning=FALSE,cache=FALSE}
+
+require(ggplot2)
+require(Rbbg)
+require(lubridate)
+conn=blpConnect(verbose=FALSE)
+start.date=today()-years(5)
+end.date=today()-1
+bbgdat=bdh(conn,"SPXT INDEX",c("PX_LAST","PX_OPEN"),start_date=start.date,end_date=end.date)
+x=blpDisconnect(conn)
+bbgdat$chg_at_open=c(NA,100*(-1+bbgdat$PX_OPEN[-1]/bbgdat$PX_LAST[-nrow(bbgdat)]))
+bbgdat$return_for_day=100*(-1+bbgdat$PX_LAST/bbgdat$PX_OPEN)
+bbgdat=bbgdat[-1,]
+ggplot(bbgdat,aes(x=chg_at_open,y=return_for_day))+geom_point()+
+  xlim(c(-.5,.5))+ylim(c(-3,3))+geom_smooth(method='lm')
+lm.results=lm(bbgdat$return_for_day~bbgdat$chg_at_open)
+summary(lm.results)
+```
