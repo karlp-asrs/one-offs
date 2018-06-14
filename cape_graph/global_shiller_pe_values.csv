@@ -1,0 +1,14 @@
+As of Date,Market,Expected Return %,Volatility %,Current Shiller PE,Max Shiller PE,Median Shiller PE,Min Shiller PE,25th Percentile Shiller PE,75th Percentile Shiller PE,EPS Inception Date
+03/2017,US (Large),0.6,14,29.02,44,16,5,12,20,1871
+03/2017,US (Small),0.4,19,55.730768,56,40,18,35,45,1978
+03/2017,Germany,5.0,25,18.16953,57,18,8,15,22,1969
+03/2017,Japan,3.5,16,24.479508,92,37,15,23,58,1969
+03/2017,UK,6.7,17,13.70318,26,14,6,12,17,1969
+03/2017,EAFE,5.3,17,14.809079,40,22,11,15,27,1972
+03/2017,China,7.1,27,12.293326,49,17,10,14,25,1995
+03/2017,EM,6.9,23,12.311904,35,17,10,15,22,1995
+
+
+""
+"As of 03/31/2017. These expected returns are calculated by Research Affiliates LLC using data provided by MSCI Inc. and Bloomberg."
+"Data series have different start dates as indicated in each card above. This content is not investment or tax advice or an offer, sale or any solicitation of any offer to buy any security, derivative or any other financial instrument. Any use of the above content is subject to and conditioned upon the user's agreement with all important disclosures, disclaimers and provisions found at www.researchaffiliates.com/en_us/about-us/legal.html.  In the event the above content is provided or modified by a third-party, Research Affiliates LLC fully disclaims any responsibility or liability for such content. ©2017 Research Affiliates, LLC. All rights reserved. This content is not investment or tax advice or an offer, sale or any solicitation of any offer to buy any security, derivative or any other financial instrument."
