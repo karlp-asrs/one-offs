@@ -1,0 +1,41 @@
+---
+title: "Global Natural Gas Prices"
+output: 
+  html_document:
+    keep_md: TRUE
+---
+
+A study on global natural gas from 2015.
+
+Following are two charts showing comparative global natural gas prices.
+
+```{r, echo=FALSE, message=FALSE, warning=FALSE}
+require(zoo)
+eugas=read.csv('pngaseu_usd.csv')
+eugas.z=zoo(eugas$Value,as.Date(eugas$Date))
+jpgas=read.csv('pngasjp_usd.csv')
+jpgas.z=zoo(jpgas$Value,as.Date(jpgas$Date))
+usgas=read.csv('pngasus_usd.csv')
+usgas.z=zoo(usgas$Value,as.Date(usgas$Date))
+plot(eugas.z,col='orange',ylim=c(0,20),
+     ylab='USD/MMBTU',xlab='',lwd=2,
+     main="Comparative Natural Gas Prices")
+lines(usgas.z,col='blue',lwd=2)
+lines(jpgas.z,col='red',lwd=2)
+legend('topleft',legend=c("US","Germany","Japan"),col=c("blue","orange","red"),lwd=2)
+
+plot(jpgas.z-usgas.z,col='red',
+     ylab='USD/MMBTU',xlab='',lwd=2,
+     main='Spread to US Gas Price')
+lines(eugas.z-usgas.z,col='orange',lwd=2)
+legend('topleft',legend=c("Germany","Japan"),col=c("orange","red"),lwd=2)
+```
+
+Asia is the primary market for US LNG export.  As you can see, spreads have dropped below $7 which some people site as the breakeven for viable Asian export projects.  This may put a damper on future LNG projects, although importers also need to consider supply diversification.  One [commenter](http://fuelfix.com/blog/2015/08/27/10-challenges-faced-by-the-global-lng-market/) noted:
+
+*"There is, however, a strong argument to be made for US LNG exports, regardless of the current price predicament, and this lies with diversification. For both Asian and European markets, long-term agreements for US exports provide a hedge against potential geopolitical tension. After all, Qatar - the largest LNG exporter in the world - exports 10 Bcf/d through the Strait of Hormuz, the most strategic strait in the world."* 
+
+
+
+
+
